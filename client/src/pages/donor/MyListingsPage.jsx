@@ -150,7 +150,7 @@ export default function MyListingsPage() {
                     </span>
                   </div>
                   <div>
-                    <DeadlineIndicator expiryDate={item.expiryDate} compact />
+                    <DeadlineIndicator expiryDate={item.collectionDeadline || item.expiryDate} compact />
                   </div>
                 </div>
               </div>

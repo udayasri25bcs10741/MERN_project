@@ -141,6 +141,8 @@ const foodListingSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
@@ -152,6 +154,11 @@ foodListingSchema.index({ collectionDeadline: 1 });
 foodListingSchema.index({ createdAt: -1 });
 // Geospatial index (only when coordinates exist)
 foodListingSchema.index({ location: '2dsphere' }, { sparse: true });
+
+// Virtual: alias expiryDate to collectionDeadline for frontend compatibility
+foodListingSchema.virtual('expiryDate').get(function () {
+  return this.collectionDeadline;
+});
 
 // Virtual: check if expired at query time
 foodListingSchema.virtual('isExpiredNow').get(function () {

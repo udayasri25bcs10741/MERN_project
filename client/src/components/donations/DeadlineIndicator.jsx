@@ -2,8 +2,9 @@ import React from 'react';
 import { Clock, AlertTriangle } from 'lucide-react';
 import { getTimeRemaining } from '../../utils/formatDate';
 
-export default function DeadlineIndicator({ expiryDate, compact = false }) {
-  const { hours, isExpired, text } = getTimeRemaining(expiryDate);
+export default function DeadlineIndicator({ expiryDate, collectionDeadline, compact = false }) {
+  const dateToUse = collectionDeadline || expiryDate;
+  const { hours, isExpired, text } = getTimeRemaining(dateToUse);
 
   if (isExpired) {
     return (

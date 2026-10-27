@@ -31,15 +31,16 @@ export default function EditListingPage() {
         const res = await listingApi.getListingById(id);
         const item = res.data?.listing;
         if (item) {
-          setForm({
-            title: item.title,
-            description: item.description,
-            category: item.category,
-            quantity: item.quantity,
-            unit: item.unit,
-            expiryDate: item.expiryDate ? new Date(item.expiryDate).toISOString().slice(0, 16) : '',
-            instructions: item.pickupLocation?.instructions || '',
-          });
+            const dl = item.collectionDeadline || item.expiryDate;
+            setForm({
+              title: item.title,
+              description: item.description,
+              category: item.category,
+              quantity: item.quantity,
+              unit: item.unit,
+              expiryDate: dl ? new Date(dl).toISOString().slice(0, 16) : '',
+              instructions: item.pickupLocation?.instructions || item.pickupAddress || '',
+            });
         }
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to load listing for editing.');
@@ -65,8 +66,9 @@ export default function EditListingPage() {
         category: form.category,
         quantity: Number(form.quantity),
         unit: form.unit,
+        collectionDeadline: new Date(form.expiryDate).toISOString(),
         expiryDate: new Date(form.expiryDate).toISOString(),
-        'pickupLocation.instructions': form.instructions,
+        pickupAddress: form.instructions,
       });
       toast.success('Listing updated successfully!');
       navigate(`/donations/${id}`);
