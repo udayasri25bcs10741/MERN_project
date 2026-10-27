@@ -24,48 +24,12 @@ if (process.env.NODE_ENV !== 'test') {
 // Security headers
 app.use(helmet());
 
-// Explicit CORS Origin Allowlist
-const isProduction = process.env.NODE_ENV === 'production';
-const allowedOrigins = [
-  process.env.CLIENT_URL,
-  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()) : []),
-].filter(Boolean);
-
 const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow non-browser requests (e.g. curl, tests, mobile native)
-    if (!origin) return callback(null, true);
-
-    if (isProduction) {
-      const isAllowed = allowedOrigins.some((allowed) => {
-        if (allowed === origin) return true;
-        if (allowed.includes('*')) {
-          const regex = new RegExp('^' + allowed.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
-          return regex.test(origin);
-        }
-        return false;
-      });
-
-      const isVercelOrRender = /^https:\/\/[a-z0-9-]+(\.vercel\.app|\.onrender\.com)$/i.test(origin);
-
-      if (isAllowed || isVercelOrRender) {
-        return callback(null, true);
-      }
-      return callback(new Error(`CORS Error: Origin ${origin} not allowed by Access-Control-Allow-Origin.`));
-    }
-
-    // In development / testing: allow configured client or standard local dev ports
-    const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
-    if (isLocalhost || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    return callback(new Error(`CORS Error: Origin ${origin} is not allowed.`));
-  },
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  optionsSuccessStatus: 204,
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
