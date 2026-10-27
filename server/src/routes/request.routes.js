@@ -22,10 +22,7 @@ router.post(
   requestController.createRequest
 );
 
-// Get a specific request (Participants + Admin)
-router.get('/requests/:id', authenticate, requestController.getRequestById);
-
-// My requests (NGO view)
+// My requests (NGO view) — MUST be defined before /requests/:id
 router.get(
   ['/my/requests', '/requests/my'],
   authenticate,
@@ -33,13 +30,16 @@ router.get(
   requestController.getMyRequests
 );
 
-// Incoming requests (donor view)
+// Incoming requests (donor view) — MUST be defined before /requests/:id
 router.get(
   ['/my/incoming-requests', '/requests/incoming'],
   authenticate,
   authorize('household_donor', 'organization_donor'),
   requestController.getIncomingRequests
 );
+
+// Get a specific request (Participants + Admin)
+router.get('/requests/:id', authenticate, requestController.getRequestById);
 
 // Donor decision (accept/reject)
 router.patch(
