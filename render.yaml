@@ -17,12 +17,6 @@ services:
         generateValue: true
       - key: CLIENT_URL
         sync: false
-      - key: CLOUDINARY_CLOUD_NAME
-        sync: false
-      - key: CLOUDINARY_API_KEY
-        sync: false
-      - key: CLOUDINARY_API_SECRET
-        sync: false
 
   # Frontend React SPA Static Site
   - type: web
