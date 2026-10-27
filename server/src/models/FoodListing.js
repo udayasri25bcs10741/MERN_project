@@ -108,11 +108,9 @@ const foodListingSchema = new mongoose.Schema(
       type: {
         type: String,
         enum: ['Point'],
-        default: 'Point',
       },
       coordinates: {
         type: [Number], // [longitude, latitude]
-        default: undefined,
       },
     },
     status: {
@@ -158,6 +156,20 @@ foodListingSchema.index({ location: '2dsphere' }, { sparse: true });
 // Virtual: check if expired at query time
 foodListingSchema.virtual('isExpiredNow').get(function () {
   return this.collectionDeadline < new Date();
+});
+
+// Ensure location subdocument is omitted if coordinates are missing or invalid
+foodListingSchema.pre('validate', function (next) {
+  if (
+    this.location &&
+    (!Array.isArray(this.location.coordinates) ||
+      this.location.coordinates.length !== 2 ||
+      isNaN(this.location.coordinates[0]) ||
+      isNaN(this.location.coordinates[1]))
+  ) {
+    this.location = undefined;
+  }
+  next();
 });
 
 module.exports = mongoose.model('FoodListing', foodListingSchema);

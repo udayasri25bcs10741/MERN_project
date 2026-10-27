@@ -2,8 +2,12 @@ const FoodListing = require('../models/FoodListing');
 const DonationRequest = require('../models/DonationRequest');
 
 const buildListingLocation = (lng, lat) => {
-  if (lng !== undefined && lat !== undefined) {
-    return { type: 'Point', coordinates: [Number(lng), Number(lat)] };
+  if (lng !== undefined && lat !== undefined && lng !== '' && lat !== '') {
+    const numLng = Number(lng);
+    const numLat = Number(lat);
+    if (!isNaN(numLng) && !isNaN(numLat)) {
+      return { type: 'Point', coordinates: [numLng, numLat] };
+    }
   }
   return undefined;
 };
