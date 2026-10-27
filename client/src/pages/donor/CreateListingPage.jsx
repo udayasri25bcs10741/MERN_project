@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { listingApi } from '../../api/listingApi';
 import ImageUploader from '../../components/forms/ImageUploader';
 import { CATEGORIES, UNITS } from '../../utils/constants';
-import { PlusCircle, Clock, MapPin, AlertCircle, ArrowRight, Info } from 'lucide-react';
+import { PlusCircle, Clock, MapPin, AlertCircle, ArrowRight, Info, Crosshair, Search, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Backend-accepted categories (must match server/src/models/FoodListing.js CATEGORIES)
@@ -25,11 +25,89 @@ export default function CreateListingPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState(null);
+  const [geocoding, setGeocoding] = useState(false);
+
+  // Auto-detect current GPS location
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser.');
+      return;
+    }
+    setGeocoding(true);
+    toast.loading('Detecting your GPS location...', { id: 'geo-detect' });
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude.toFixed(6);
+        const lng = pos.coords.longitude.toFixed(6);
+        setForm((prev) => ({
+          ...prev,
+          locationLat: lat,
+          locationLng: lng,
+        }));
+
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+          );
+          const data = await res.json();
+          if (data && data.display_name) {
+            setForm((prev) => ({
+              ...prev,
+              pickupAddress: data.display_name,
+            }));
+            toast.success('Location & address detected successfully!', { id: 'geo-detect' });
+          } else {
+            toast.success(`Coordinates detected: ${lat}, ${lng}`, { id: 'geo-detect' });
+          }
+        } catch {
+          toast.success(`Coordinates captured: ${lat}, ${lng}`, { id: 'geo-detect' });
+        } finally {
+          setGeocoding(false);
+        }
+      },
+      () => {
+        setGeocoding(false);
+        toast.error('Unable to retrieve location. Please check browser permissions.', { id: 'geo-detect' });
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
+
+  // Lookup coordinates from typed address
+  const handleLookupCoordinates = async () => {
+    if (!form.pickupAddress || form.pickupAddress.trim().length < 3) {
+      toast.error('Please enter a pickup address first.');
+      return;
+    }
+    setGeocoding(true);
+    toast.loading('Finding coordinates from address...', { id: 'geo-lookup' });
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(form.pickupAddress)}&limit=1`
+      );
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat).toFixed(6);
+        const lng = parseFloat(data[0].lon).toFixed(6);
+        setForm((prev) => ({
+          ...prev,
+          locationLat: lat,
+          locationLng: lng,
+        }));
+        toast.success(`Coordinates found: ${lat}, ${lng}! Added to map view.`, { id: 'geo-lookup' });
+      } else {
+        toast.error('Could not find coordinates for this address. You can enter them manually.', { id: 'geo-lookup' });
+      }
+    } catch {
+      toast.error('Geocoding service unavailable.', { id: 'geo-lookup' });
+    } finally {
+      setGeocoding(false);
+    }
+  };
 
   // Get a datetime-local string 1 hour from now (for availableFrom default)
   const nowPlusOneHour = () => {
     const d = new Date(Date.now() + 60 * 60 * 1000);
-    // Format: YYYY-MM-DDTHH:mm
     return d.toISOString().slice(0, 16);
   };
 
@@ -45,15 +123,11 @@ export default function CreateListingPage() {
     category: 'cooked_meals',
     quantity: 10,
     unit: 'servings',
-    // Backend fields: availableFrom + collectionDeadline
     availableFrom: nowPlusOneHour(),
     collectionDeadline: nowPlusOneDay(),
-    // Backend field: storageCondition (free text)
     storageCondition: '',
-    // Backend field: allergenInformation (free text) + allergenStatus (enum)
     allergenInformation: '',
     allergenStatus: 'unknown',
-    // Backend field: pickupAddress (single string)
     pickupAddress: '',
     locationLat: '',
     locationLng: '',
@@ -351,14 +425,36 @@ export default function CreateListingPage() {
 
         {/* Pickup Location */}
         <div className="space-y-4 pt-4 border-t border-surface-100">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-surface-400">
-            4. Pickup Location
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-surface-400">
+              4. Pickup Location
+            </h3>
+            <button
+              type="button"
+              onClick={handleDetectLocation}
+              disabled={geocoding}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors border border-emerald-200"
+            >
+              <Crosshair className="w-3.5 h-3.5" />
+              <span>{geocoding ? 'Detecting...' : '📍 Use My Current Location'}</span>
+            </button>
+          </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-surface-700 mb-1">
-              Full Pickup Address <span className="text-rose-500">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-surface-700">
+                Full Pickup Address <span className="text-rose-500">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={handleLookupCoordinates}
+                disabled={geocoding}
+                className="text-[11px] font-semibold text-primary-600 hover:text-primary-700 flex items-center gap-1 hover:underline"
+              >
+                <Search className="w-3 h-3" />
+                Find Coordinates on Map
+              </button>
+            </div>
             <input
               type="text"
               required
@@ -406,6 +502,18 @@ export default function CreateListingPage() {
               />
             </div>
           </div>
+
+          {form.locationLat && form.locationLng && (
+            <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/60 text-xs text-emerald-800 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 font-medium">
+                <CheckCircle className="w-4 h-4 text-emerald-600" />
+                GPS Coordinates Ready: {form.locationLat}, {form.locationLng}
+              </span>
+              <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600 bg-white px-2 py-0.5 rounded-md border border-emerald-200">
+                Will appear on Live Map
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Food Image */}

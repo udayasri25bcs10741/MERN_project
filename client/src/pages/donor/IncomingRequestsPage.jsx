@@ -6,6 +6,7 @@ import EmptyState from '../../components/common/EmptyState';
 import ErrorState from '../../components/common/ErrorState';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog';
 import QRCodeDisplay from '../../components/common/QRCodeDisplay';
+import ImpactCertificateModal from '../../components/common/ImpactCertificateModal';
 import {
   Inbox,
   CheckCircle2,
@@ -16,6 +17,7 @@ import {
   AlertTriangle,
   Copy,
   Check,
+  Award,
 } from 'lucide-react';
 import { formatDateTime } from '../../utils/formatDate';
 import toast from 'react-hot-toast';
@@ -34,6 +36,7 @@ export default function IncomingRequestsPage() {
   // Pickup Code Display Modal (returned once upon accept)
   const [acceptedResult, setAcceptedResult] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [selectedCertRequest, setSelectedCertRequest] = useState(null);
 
   const fetchRequests = useCallback(async () => {
     try {
@@ -204,6 +207,19 @@ export default function IncomingRequestsPage() {
                   </button>
                 </div>
               )}
+
+              {/* Completed Impact Certificate Action */}
+              {req.status === 'completed' && (
+                <div className="flex justify-end pt-2 border-t border-surface-100">
+                  <button
+                    onClick={() => setSelectedCertRequest(req)}
+                    className="btn-secondary text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200 py-1.5 px-3.5 flex items-center gap-1.5 font-semibold"
+                  >
+                    <Award className="w-4 h-4 text-emerald-600" />
+                    <span>Download CSR Impact Certificate</span>
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -317,6 +333,13 @@ export default function IncomingRequestsPage() {
           </div>
         </div>
       )}
+
+      {/* Official Impact & CSR Certificate Modal */}
+      <ImpactCertificateModal
+        isOpen={!!selectedCertRequest}
+        onClose={() => setSelectedCertRequest(null)}
+        request={selectedCertRequest}
+      />
     </div>
   );
 }

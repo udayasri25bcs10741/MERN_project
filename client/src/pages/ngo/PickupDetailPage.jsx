@@ -6,6 +6,7 @@ import StatusBadge from '../../components/donations/StatusBadge';
 import LoadingState from '../../components/common/LoadingState';
 import ErrorState from '../../components/common/ErrorState';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog';
+import ImpactCertificateModal from '../../components/common/ImpactCertificateModal';
 import {
   ShieldCheck,
   MapPin,
@@ -17,6 +18,7 @@ import {
   CheckCircle2,
   Clock,
   Phone,
+  Award,
 } from 'lucide-react';
 import { formatDateTime } from '../../utils/formatDate';
 import toast from 'react-hot-toast';
@@ -26,6 +28,7 @@ export default function PickupDetailPage() {
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isCertOpen, setIsCertOpen] = useState(false);
 
   // Handover Code Verification Form
   const [pickupCodeInput, setPickupCodeInput] = useState('');
@@ -187,16 +190,29 @@ export default function PickupDetailPage() {
           )}
 
           {isCompleted && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-6 text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-6 text-center space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-emerald-900">
-                Food Handover Verified & Delivered!
-              </h3>
-              <p className="text-xs text-emerald-700">
-                Completed on {formatDateTime(request.completedAt)}. This rescued meal is now recorded in your impact analytics.
-              </p>
+              <div>
+                <h3 className="text-base font-bold text-emerald-900">
+                  Food Handover Verified & Delivered!
+                </h3>
+                <p className="text-xs text-emerald-700 mt-0.5">
+                  Completed on {formatDateTime(request.completedAt)}. This rescued meal is now recorded in your impact analytics.
+                </p>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCertOpen(true)}
+                  className="btn-primary bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-5 py-2.5 inline-flex items-center gap-2 shadow-sm"
+                >
+                  <Award className="w-4 h-4" />
+                  <span>Download CSR Impact Certificate (PDF)</span>
+                </button>
+              </div>
             </div>
           )}
 
@@ -356,6 +372,13 @@ export default function PickupDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Official Impact & CSR Certificate Modal */}
+      <ImpactCertificateModal
+        isOpen={isCertOpen}
+        onClose={() => setIsCertOpen(false)}
+        request={request}
+      />
     </div>
   );
 }
