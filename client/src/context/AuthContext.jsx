@@ -63,7 +63,11 @@ export const AuthProvider = ({ children }) => {
       toast.success(`Welcome back, ${receivedUser.name}!`);
       return receivedUser;
     } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed. Please check your credentials.';
+      const msg =
+        err.response?.data?.errors?.[0]?.message ||
+        err.response?.data?.message ||
+        err.message ||
+        'Login failed. Please check your credentials.';
       toast.error(msg);
       throw err;
     }
@@ -77,7 +81,11 @@ export const AuthProvider = ({ children }) => {
       toast.success('Registration successful!');
       return receivedUser;
     } catch (err) {
-      const msg = err.response?.data?.message || 'Registration failed.';
+      const msg =
+        err.response?.data?.errors?.[0]?.message ||
+        err.response?.data?.message ||
+        err.message ||
+        'Registration failed.';
       toast.error(msg);
       throw err;
     }

@@ -46,7 +46,9 @@ const corsOptions = {
         return false;
       });
 
-      if (isAllowed) {
+      const isVercelOrRender = /^https:\/\/[a-z0-9-]+(\.vercel\.app|\.onrender\.com)$/i.test(origin);
+
+      if (isAllowed || isVercelOrRender) {
         return callback(null, true);
       }
       return callback(new Error(`CORS Error: Origin ${origin} not allowed by Access-Control-Allow-Origin.`));

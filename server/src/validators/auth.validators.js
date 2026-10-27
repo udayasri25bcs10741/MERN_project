@@ -11,7 +11,22 @@ const registerSchema = z.object({
     errorMap: () => ({ message: 'Invalid role. Must be household_donor, organization_donor, ngo, or volunteer.' }),
   }),
   phone: z.string().trim().optional(),
-  address: z.string().trim().optional(),
+  address: z
+    .union([
+      z.string(),
+      z.object({
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        postalCode: z.string().optional(),
+      }),
+    ])
+    .optional()
+    .transform((val) => {
+      if (!val) return '';
+      if (typeof val === 'string') return val.trim();
+      return [val.address, val.city, val.state, val.postalCode].filter(Boolean).join(', ');
+    }),
   organizationName: z.string().trim().optional(),
   organizationDescription: z.string().trim().optional(),
   contactPerson: z.string().trim().optional(),

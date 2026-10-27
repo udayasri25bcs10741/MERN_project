@@ -42,7 +42,19 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const user = await register(formData);
+      const formattedAddress =
+        typeof formData.address === 'object'
+          ? [formData.address.address, formData.address.city, formData.address.state, formData.address.postalCode]
+              .filter(Boolean)
+              .join(', ')
+          : formData.address;
+
+      const payload = {
+        ...formData,
+        address: formattedAddress,
+      };
+
+      const user = await register(payload);
       if (user.role === 'ngo') navigate('/ngo/dashboard');
       else if (user.role === 'volunteer') navigate('/volunteer/dashboard');
       else navigate('/donor/dashboard');
