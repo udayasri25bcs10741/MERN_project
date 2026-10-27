@@ -56,13 +56,14 @@ const authorize = (...roles) => {
     if (!req.user) {
       return res.status(401).json({ success: false, message: 'Authentication required.' });
     }
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: `Access denied. Required role: ${roles.join(' or ')}.`,
-      });
+    // Admins have superuser privileges across all operational endpoints
+    if (req.user.role === 'admin' || roles.includes(req.user.role)) {
+      return next();
     }
-    next();
+    return res.status(403).json({
+      success: false,
+      message: `Access denied. Required role: ${roles.join(' or ')}.`,
+    });
   };
 };
 

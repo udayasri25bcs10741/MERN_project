@@ -19,7 +19,7 @@ export default function ProtectedRoute({ children, allowedRoles = [], requireVer
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role) && user.role !== 'admin') {
     return <Navigate to="/unauthorized" replace />;
   }
 
