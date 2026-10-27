@@ -1,126 +1,135 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
-// Layouts
+// Layouts (eagerly loaded for shell layout stability)
 import MainLayout from '../layouts/MainLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import AuthLayout from '../layouts/AuthLayout';
 import ProtectedRoute from './ProtectedRoute';
+import LoadingState from '../components/common/LoadingState';
 
-// Public Pages
-import HomePage from '../pages/public/HomePage';
-import BrowseDonationsPage from '../pages/public/BrowseDonationsPage';
-import DonationDetailPage from '../pages/public/DonationDetailPage';
-import LoginPage from '../pages/auth/LoginPage';
-import RegisterPage from '../pages/auth/RegisterPage';
+// Public Pages (lazy-loaded)
+const HomePage = lazy(() => import('../pages/public/HomePage'));
+const BrowseDonationsPage = lazy(() => import('../pages/public/BrowseDonationsPage'));
+const DonationDetailPage = lazy(() => import('../pages/public/DonationDetailPage'));
+const LoginPage = lazy(() => import('../pages/auth/LoginPage'));
+const RegisterPage = lazy(() => import('../pages/auth/RegisterPage'));
 
-// Donor Pages
-import DonorDashboardPage from '../pages/donor/DonorDashboardPage';
-import MyListingsPage from '../pages/donor/MyListingsPage';
-import CreateListingPage from '../pages/donor/CreateListingPage';
-import EditListingPage from '../pages/donor/EditListingPage';
-import IncomingRequestsPage from '../pages/donor/IncomingRequestsPage';
+// Donor Pages (lazy-loaded)
+const DonorDashboardPage = lazy(() => import('../pages/donor/DonorDashboardPage'));
+const MyListingsPage = lazy(() => import('../pages/donor/MyListingsPage'));
+const CreateListingPage = lazy(() => import('../pages/donor/CreateListingPage'));
+const EditListingPage = lazy(() => import('../pages/donor/EditListingPage'));
+const IncomingRequestsPage = lazy(() => import('../pages/donor/IncomingRequestsPage'));
 
-// NGO Pages
-import NGODashboardPage from '../pages/ngo/NGODashboardPage';
-import MyRequestsPage from '../pages/ngo/MyRequestsPage';
-import PickupDetailPage from '../pages/ngo/PickupDetailPage';
+// NGO Pages (lazy-loaded)
+const NGODashboardPage = lazy(() => import('../pages/ngo/NGODashboardPage'));
+const MyRequestsPage = lazy(() => import('../pages/ngo/MyRequestsPage'));
+const PickupDetailPage = lazy(() => import('../pages/ngo/PickupDetailPage'));
 
-// Volunteer Pages
-import VolunteerDashboardPage from '../pages/volunteer/VolunteerDashboardPage';
-import AssignedPickupsPage from '../pages/volunteer/AssignedPickupsPage';
+// Volunteer Pages (lazy-loaded)
+const VolunteerDashboardPage = lazy(() => import('../pages/volunteer/VolunteerDashboardPage'));
+const AssignedPickupsPage = lazy(() => import('../pages/volunteer/AssignedPickupsPage'));
 
-// Admin Pages
-import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
-import VerificationManagementPage from '../pages/admin/VerificationManagementPage';
-import ListingModerationPage from '../pages/admin/ListingModerationPage';
-import UserManagementPage from '../pages/admin/UserManagementPage';
-import AuditLogsPage from '../pages/admin/AuditLogsPage';
+// Admin Pages (lazy-loaded)
+const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'));
+const VerificationManagementPage = lazy(() => import('../pages/admin/VerificationManagementPage'));
+const ListingModerationPage = lazy(() => import('../pages/admin/ListingModerationPage'));
+const UserManagementPage = lazy(() => import('../pages/admin/UserManagementPage'));
+const AuditLogsPage = lazy(() => import('../pages/admin/AuditLogsPage'));
 
-// System Pages
-import NotFoundPage from '../pages/NotFoundPage';
-import UnauthorizedPage from '../pages/UnauthorizedPage';
+// System Pages (lazy-loaded)
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
+const UnauthorizedPage = lazy(() => import('../pages/UnauthorizedPage'));
+
+const PageFallback = () => (
+  <div className="min-h-[50vh] flex items-center justify-center">
+    <LoadingState message="Loading page..." size="large" />
+  </div>
+);
 
 export default function AppRoutes() {
   return (
-    <Routes>
-      {/* Public Pages with MainLayout */}
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/donations" element={<BrowseDonationsPage />} />
-        <Route path="/donations/:id" element={<DonationDetailPage />} />
-        <Route path="/unauthorized" element={<UnauthorizedPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
+    <Suspense fallback={<PageFallback />}>
+      <Routes>
+        {/* Public Pages with MainLayout */}
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/donations" element={<BrowseDonationsPage />} />
+          <Route path="/donations/:id" element={<DonationDetailPage />} />
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
 
-      {/* Auth Pages with AuthLayout */}
-      <Route element={<AuthLayout />}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-      </Route>
+        {/* Auth Pages with AuthLayout */}
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
 
-      {/* Donor Protected Routes */}
-      <Route
-        path="/donor"
-        element={
-          <ProtectedRoute allowedRoles={['household_donor', 'organization_donor']}>
-            <DashboardLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Navigate to="/donor/dashboard" replace />} />
-        <Route path="dashboard" element={<DonorDashboardPage />} />
-        <Route path="listings" element={<MyListingsPage />} />
-        <Route path="listings/new" element={<CreateListingPage />} />
-        <Route path="listings/:id/edit" element={<EditListingPage />} />
-        <Route path="requests" element={<IncomingRequestsPage />} />
-      </Route>
+        {/* Donor Protected Routes */}
+        <Route
+          path="/donor"
+          element={
+            <ProtectedRoute allowedRoles={['household_donor', 'organization_donor']}>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="/donor/dashboard" replace />} />
+          <Route path="dashboard" element={<DonorDashboardPage />} />
+          <Route path="listings" element={<MyListingsPage />} />
+          <Route path="listings/new" element={<CreateListingPage />} />
+          <Route path="listings/:id/edit" element={<EditListingPage />} />
+          <Route path="requests" element={<IncomingRequestsPage />} />
+        </Route>
 
-      {/* NGO Protected Routes */}
-      <Route
-        path="/ngo"
-        element={
-          <ProtectedRoute allowedRoles={['ngo']}>
-            <DashboardLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Navigate to="/ngo/dashboard" replace />} />
-        <Route path="dashboard" element={<NGODashboardPage />} />
-        <Route path="requests" element={<MyRequestsPage />} />
-        <Route path="requests/:id" element={<PickupDetailPage />} />
-      </Route>
+        {/* NGO Protected Routes */}
+        <Route
+          path="/ngo"
+          element={
+            <ProtectedRoute allowedRoles={['ngo']}>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="/ngo/dashboard" replace />} />
+          <Route path="dashboard" element={<NGODashboardPage />} />
+          <Route path="requests" element={<MyRequestsPage />} />
+          <Route path="requests/:id" element={<PickupDetailPage />} />
+        </Route>
 
-      {/* Volunteer Protected Routes */}
-      <Route
-        path="/volunteer"
-        element={
-          <ProtectedRoute allowedRoles={['volunteer']}>
-            <DashboardLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Navigate to="/volunteer/dashboard" replace />} />
-        <Route path="dashboard" element={<VolunteerDashboardPage />} />
-        <Route path="pickups" element={<AssignedPickupsPage />} />
-      </Route>
+        {/* Volunteer Protected Routes */}
+        <Route
+          path="/volunteer"
+          element={
+            <ProtectedRoute allowedRoles={['volunteer']}>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="/volunteer/dashboard" replace />} />
+          <Route path="dashboard" element={<VolunteerDashboardPage />} />
+          <Route path="pickups" element={<AssignedPickupsPage />} />
+        </Route>
 
-      {/* Admin Protected Routes */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <DashboardLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="dashboard" element={<AdminDashboardPage />} />
-        <Route path="verifications" element={<VerificationManagementPage />} />
-        <Route path="listings" element={<ListingModerationPage />} />
-        <Route path="users" element={<UserManagementPage />} />
-        <Route path="audit-logs" element={<AuditLogsPage />} />
-      </Route>
-    </Routes>
+        {/* Admin Protected Routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="dashboard" element={<AdminDashboardPage />} />
+          <Route path="verifications" element={<VerificationManagementPage />} />
+          <Route path="listings" element={<ListingModerationPage />} />
+          <Route path="users" element={<UserManagementPage />} />
+          <Route path="audit-logs" element={<AuditLogsPage />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }

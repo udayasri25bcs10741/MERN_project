@@ -5,6 +5,7 @@ import LoadingState from '../../components/common/LoadingState';
 import EmptyState from '../../components/common/EmptyState';
 import ErrorState from '../../components/common/ErrorState';
 import ConfirmationDialog from '../../components/common/ConfirmationDialog';
+import QRCodeDisplay from '../../components/common/QRCodeDisplay';
 import {
   Inbox,
   CheckCircle2,
@@ -299,6 +300,8 @@ export default function IncomingRequestsPage() {
                 <span>{copied ? 'Copied' : 'Copy'}</span>
               </button>
             </div>
+
+            <QRCodeDisplay code={acceptedResult.pickupCode} />
 
             <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-left text-xs text-amber-900 flex items-start gap-2.5">
               <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
