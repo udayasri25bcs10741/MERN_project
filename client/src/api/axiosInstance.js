@@ -1,13 +1,20 @@
 import axios from 'axios';
 
-const rawBaseURL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api/v1').trim();
+// When running live on Vercel, use relative '/api/v1' to proxy through Vercel edge to Render without CORS issues
+const isBrowser = typeof window !== 'undefined';
+const isVercelHost = isBrowser && window.location.hostname.includes('vercel.app');
+
+const rawBaseURL = isVercelHost
+  ? '/api/v1'
+  : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api/v1').trim();
+
 const baseURL = rawBaseURL.endsWith('/api/v1')
   ? rawBaseURL
   : `${rawBaseURL.replace(/\/+$/, '')}/api/v1`;
 
 const api = axios.create({
   baseURL,
-  timeout: 15000,
+  timeout: 25000,
   headers: {
     'Content-Type': 'application/json',
   },
