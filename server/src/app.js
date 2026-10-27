@@ -16,6 +16,9 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
+// Trust reverse proxy (Render, Cloudflare, Heroku) for accurate IP rate limiting
+app.set('trust proxy', 1);
+
 // Connect to MongoDB (skip in test environment so Jest setup controls test DB)
 if (process.env.NODE_ENV !== 'test') {
   connectDB();
@@ -43,6 +46,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 500,
+  validate: { xForwardedForHeader: false },
   message: { success: false, message: 'Too many requests, please try again later.' },
 });
 app.use('/api', globalLimiter);
@@ -51,6 +55,7 @@ app.use('/api', globalLimiter);
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 30,
+  validate: { xForwardedForHeader: false },
   message: { success: false, message: 'Too many authentication attempts, please try again later.' },
 });
 
