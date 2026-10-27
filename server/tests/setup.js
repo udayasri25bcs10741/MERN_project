@@ -2,6 +2,10 @@
  * Jest setup — connects to a test database and tears down after all tests.
  */
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+const dns = require('dns');
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (_) {}
 const mongoose = require('mongoose');
 
 // Use a separate test DB
